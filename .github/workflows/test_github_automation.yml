@@ -4,26 +4,28 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.12.1
-      uses: actions/setup-python@v1
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
       with:
         python-version: 3.12
+
     - name: Install dependencies
-      run: |
-        make install
+      run: make install
+      working-directory: pytest-tips-tricks
+
     - name: Lint with pylint
-      run: |
-        make lint
+      run: make lint
+      working-directory: pytest-tips-tricks
+
     - name: Test with pytest
-      run: |
-        make test
+      run: make test
+      working-directory: pytest-tips-tricks
+
     - name: Format code
-      run: |
-        make format
-    
-    
+      run: make format
+      working-directory: pytest-tips-tricks
