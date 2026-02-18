@@ -1,5 +1,4 @@
 name: Sync to HuggingFace Hub
-
 on:
   push:
     branches: [dev]
