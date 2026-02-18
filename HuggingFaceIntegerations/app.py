@@ -5,6 +5,8 @@ import gradio as gr
 from transformers import pipeline
 from indic_transliteration import sanscript
 from indic_transliteration.sanscript import transliterate
+import os
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # silences oneDNN
 
 # Model identifiers (Helsinki-NLP MarianMT models)
 HI_EN_MODEL = "Helsinki-NLP/opus-mt-hi-en"
