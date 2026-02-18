@@ -4,10 +4,10 @@ emoji: 🌐
 colorFrom: blue
 colorTo: purple
 sdk: gradio
-# sdk_version: 5.15.0     # optional - remove or update to latest if you want to pin
+# sdk_version: 5.15.0     # optional - remove or update if needed
 app_file: app.py
 license: apache-2.0
-short_description: Neural translation Hindi↔English + Devanagari to Hinglish transliteration
+short_description: Hindi↔English translator + Hinglish transliteration
 tags:
   - translation
   - machine-translation
@@ -18,7 +18,6 @@ tags:
 models:
   - Helsinki-NLP/opus-mt-hi-en
   - Helsinki-NLP/opus-mt-en-hi
-thumbnail: https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-spaces-thumbnail.png  # optional - replace with your own
 ---
 
 # Hindi ↔ English + Hinglish Translator
