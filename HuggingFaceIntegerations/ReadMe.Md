@@ -1,16 +1,3 @@
----
-title: Machine Translation — Hindi ↔ English + Hinglish Transliteration
-emoji: 🌐
-colorFrom: blue
-colorTo: indigo
-sdk: gradio
-sdk_version: 4.44.0   # Safe, widely used version in late 2025/2026; update if needed (or remove line for latest)
-python_version: 3.12
-app_file: app.py
-pinned: false
-short_description: Bidirectional Hindi-English translation + Devanagari to Roman (Hinglish-style) transliteration
----
-
 # Machine Translation — Hindi ↔ English + Hindi → Hinglish
 
 A lightweight Gradio web app for:
