@@ -1,33 +1,40 @@
 ---
-title: Machine Translation — Hindi ↔ English + Hinglish
-emoji: 
+title: Hindi ↔ English + Hinglish Translator
+emoji: 🌐
 colorFrom: blue
-colorTo: indigo
+colorTo: purple
 sdk: gradio
-sdk_version: "4.44.0"
-python_version: "3.12"
+# sdk_version: 5.15.0     # optional - remove or update to latest if you want to pin
 app_file: app.py
-pinned: false
-short_description: Hindi ↔ English translation and Hindi to Roman (Hinglish) transliteration
+license: apache-2.0
+short_description: Neural translation Hindi↔English + Devanagari to Hinglish transliteration
+tags:
+  - translation
+  - machine-translation
+  - hindi
+  - hinglish
+  - indic-languages
+  - gradio
+models:
+  - Helsinki-NLP/opus-mt-hi-en
+  - Helsinki-NLP/opus-mt-en-hi
+thumbnail: https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/gradio-spaces-thumbnail.png  # optional - replace with your own
 ---
 
-# Machine Translation — Hindi ↔ English + Hindi → Hinglish
+# Hindi ↔ English + Hinglish Translator
 
-A simple Gradio app using:
+A simple, fast multilingual translator demo built with Hugging Face Transformers and Gradio.
 
-- **Hindi → English**: [Helsinki-NLP/opus-mt-hi-en](https://huggingface.co/Helsinki-NLP/opus-mt-hi-en)
-- **English → Hindi**: [Helsinki-NLP/opus-mt-en-hi](https://huggingface.co/Helsinki-NLP/opus-mt-en-hi)
-- **Hindi → Hinglish** (transliteration): `indic-transliteration` (ITRANS scheme)
+## Features
+- **Hindi → English** – Neural machine translation (MarianMT)
+- **English → Hindi** – Neural machine translation (MarianMT)
+- **Hindi → Hinglish** – Roman transliteration using ITRANS scheme
 
-> **Hinglish output** is Romanized Hindi (e.g. "नमस्ते" → "namaste"), not full translation.
+### Powered by
+- [Helsinki-NLP/opus-mt-hi-en](https://huggingface.co/Helsinki-NLP/opus-mt-hi-en)
+- [Helsinki-NLP/opus-mt-en-hi](https://huggingface.co/Helsinki-NLP/opus-mt-en-hi)
+- [indic-transliteration](https://github.com/AnimeshSinha1309/indic-transliteration) library
 
-Live demo should appear below once configuration is fixed.
+Just type or paste text, select a task, adjust max length if needed, and click **Translate**!
 
-## Quick Local Test
-
-```bash
-cd HuggingFaceIntegerations
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-python app.py
+Made with ❤️ in India 🇮🇳
