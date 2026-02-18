@@ -1,0 +1,10 @@
+gradio
+transformers==4.45
+tf-keras
+torch
+sentencepiece
+indic-transliteration
+pytest
+pytest-cov
+black
+pylint
