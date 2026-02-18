@@ -1,0 +1,35 @@
+# .pre-commit-config.yaml
+repos:
+  # Black for code formatting
+  - repo: https://github.com/psf/black
+    rev: 26.1.0
+    hooks:
+      - id: black
+        language_version: python3.12
+
+  # Pylint for code linting
+  - repo: https://github.com/PyCQA/pylint
+    rev: v4.0.4
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: python
+        types: [python]
+        language_version: python3.12
+
+  # Check for trailing whitespace
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+
+  # Optional: safety check for dependencies
+  - repo: https://github.com/pyupio/safety
+    rev: 2.3.2
+    hooks:
+      - id: safety
+        args: ["--full-report"]
+

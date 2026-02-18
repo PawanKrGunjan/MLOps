@@ -1,0 +1,29 @@
+[project]
+name = "continuous-integration"
+version = "0.1.0"
+description = "A simple calculator project for CI testing"
+authors = [
+    { name="Pawan Gunjan", email="your.email@example.com" }
+]
+license = { text = "MIT" }
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    # add runtime dependencies here if any
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "--cov=calc --cov-report=term-missing --cov-fail-under=90 -vv"
+testpaths = ["tests"]
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+
+[tool.pylint.main]
+# You can configure pylint options here if needed
