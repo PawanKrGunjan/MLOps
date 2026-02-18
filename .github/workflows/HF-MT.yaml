@@ -1,4 +1,5 @@
 name: Sync to HuggingFace Hub
+
 on:
   push:
     branches: [dev]
@@ -14,14 +15,28 @@ jobs:
           fetch-depth: 0
           lfs: true
 
-      - name: Push to Hugging Face Space
+      - name: Push HuggingFaceIntegerations to Space
         env:
           HF_TOKEN: ${{ secrets.HG }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          set -e
 
           HF_USERNAME="PawanKrGunjan"
           SPACE_NAME="Machine-Translation"
+          SPACE_URL="https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/$SPACE_NAME"
 
-          git push https://$HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/$HF_USERNAME/$SPACE_NAME dev:main
+          # Build a clean repo from the subdirectory contents
+          rm -rf /tmp/space_repo
+          mkdir -p /tmp/space_repo
+          rsync -av --delete HuggingFaceIntegerations/ /tmp/space_repo/
+
+          cd /tmp/space_repo
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Sync from GitHub (HuggingFaceIntegerations)"
+
+          # Force push so Space main becomes exactly this folder
+          git branch -M main
+          git push --force "$SPACE_URL" main:main
