@@ -33,11 +33,7 @@ def calculator_tool(tool_name: str, x: Number, y: Number) -> Number:
     """
     Route to the appropriate math operation based on tool_name.
 
-    Supported operations:
-        - add
-        - subtract
-        - multiply
-        - divide
+    Supported operations: add, subtract, multiply, divide
 
     Raises:
         ValueError: If tool_name is unknown.
@@ -46,18 +42,20 @@ def calculator_tool(tool_name: str, x: Number, y: Number) -> Number:
         "add": add,
         "subtract": subtract,
         "multiply": multiply,
-        "divide": divide,  # fixed: no unnecessary lambda
+        "divide": divide,
     }
 
     if tool_name not in tools:
-        raise ValueError(
-            f"Unknown tool: {tool_name!r}. " f"Supported: {', '.join(sorted(tools))}"
-        )
+        supported = ", ".join(sorted(tools))
+        raise ValueError(f"Unknown tool: {tool_name!r}. Supported: {supported}")
 
     return tools[tool_name](x, y)
 
 
+# ────────────────────────────────────────────────
 # Safe AST-based expression evaluator
+# ────────────────────────────────────────────────
+
 _BIN_OPS: dict[type[ast.operator], Callable[[Number, Number], Number]] = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
@@ -75,29 +73,71 @@ def evaluate_expression(expression: str) -> Number:
     """
     Safely evaluate a simple arithmetic expression using AST parsing.
 
-    Allowed syntax:
+    Allowed:
         - Integers and floating-point numbers
         - Binary operators: +, -, *, /
         - Unary operators: +, -
         - Parentheses for grouping
 
     Disallowed:
-        - Variable names, function calls, attribute access, indexing, etc.
+        - Variable names, function calls, attribute access, indexing,
+          boolean literals, None, strings, complex numbers, etc.
 
     Raises:
-        ValueError: If the expression is invalid or contains disallowed constructs.
+        ValueError: With a descriptive message about the specific problem.
     """
     try:
         tree = ast.parse(expression, mode="eval")
+    except SyntaxError as exc:
+        raise ValueError(f"Invalid syntax in expression: {expression!r}") from exc
+
+    try:
         return _eval_ast(tree.body)
-    except (SyntaxError, ValueError, TypeError) as exc:
-        raise ValueError(f"Invalid expression: {expression!r}") from exc
+    except ValueError as exc:
+        raise exc
+    except TypeError as exc:
+        raise ValueError(f"Type error during evaluation: {str(exc)}") from exc
+
+
+# def _eval_ast(node: ast.AST) -> Number:
+#     """Recursively evaluate an AST node to a number."""
+#     if isinstance(node, ast.Constant):
+#         val = node.value
+#         if isinstance(val, bool):
+#             raise ValueError("Boolean literals are not supported in expressions")
+#         if isinstance(val, (int, float)):
+#             return val
+
+#         # unreachable in safe eval expressions → defensive only
+#         raise ValueError("Unsupported constant type")  # pragma: no cover
+
+#     if isinstance(node, ast.BinOp):
+#         op_type = type(node.op)
+#         if op_type in _BIN_OPS:
+#             left = _eval_ast(node.left)
+#             right = _eval_ast(node.right)
+#             return _BIN_OPS[op_type](left, right)
+
+#     if isinstance(node, ast.UnaryOp):
+#         op_type = type(node.op)
+#         if op_type in _UNARY_OPS:
+#             operand = _eval_ast(node.operand)
+#             return _UNARY_OPS[op_type](operand)
+
+#     raise ValueError("Expression contains unsupported operation or structure")
 
 
 def _eval_ast(node: ast.AST) -> Number:
     """Recursively evaluate an AST node to a number."""
-    if isinstance(node, ast.Constant) and isinstance(node.value, (int, float)):
-        return node.value
+    if isinstance(node, ast.Constant):
+        val = node.value
+        if isinstance(val, bool):
+            raise ValueError("Boolean literals are not supported in expressions")
+        if not isinstance(val, (int, float)):
+            raise ValueError(
+                f"Only int and float literals are supported — got {type(val).__name__!r}"
+            )
+        return val
 
     if isinstance(node, ast.BinOp):
         op_type = type(node.op)

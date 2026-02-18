@@ -152,9 +152,33 @@ def test_empty_expression():
 # Coverage for defensive error in _eval_ast
 # ────────────────────────────────────────────────
 
+# def test_unsupported_ast_node_boolean():
+#     with pytest.raises(ValueError, match="Boolean literals are not supported"):
+#         evaluate_expression("True")
+
+
+# def test_unsupported_ast_node_boolean_false():
+#     with pytest.raises(ValueError, match="Boolean literals are not supported"):
+#         evaluate_expression("False")
+
+
+# def test_unsupported_ast_node_boolean_explicit():
+#     with pytest.raises(ValueError, match="Boolean literals are not supported"):
+#         evaluate_expression("True")
+
 
 def test_unsupported_ast_node_boolean():
-    with pytest.raises(ValueError, match="unsupported operation or structure"):
+    with pytest.raises(ValueError, match="Boolean literals are not supported"):
+        evaluate_expression("True")
+
+
+def test_unsupported_ast_node_boolean_false():
+    with pytest.raises(ValueError, match="Boolean literals are not supported"):
+        evaluate_expression("False")
+
+
+def test_unsupported_ast_node_boolean_explicit():
+    with pytest.raises(ValueError, match="Boolean literals are not supported"):
         evaluate_expression("True")
 
 

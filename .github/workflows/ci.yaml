@@ -1,0 +1,41 @@
+name: CI - Continuous Integration Project
+
+on:
+  push:
+    branches: [dev, main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        working-directory: continuous-integration
+        run: make install
+
+      - name: Lint
+        working-directory: continuous-integration
+        run: make lint
+
+      - name: Format check
+        working-directory: continuous-integration
+        run: make format-check
+
+      - name: Test (with coverage gate)
+        working-directory: continuous-integration
+        run: make test
