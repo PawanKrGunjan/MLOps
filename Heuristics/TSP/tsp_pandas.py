@@ -48,6 +48,8 @@ def create_cities():
 
 def euclidean_distance(lat1, lon1, lat2, lon2):
     return np.sqrt((lat1 - lat2) ** 2 + (lon1 - lon2) ** 2)
+
+
 #
 #
 # def tsp_pandas(df: pd.DataFrame):
@@ -82,6 +84,7 @@ def euclidean_distance(lat1, lon1, lat2, lon2):
 #
 #     # ✅ Return distance first, then route list
 #     return float(total_distance), route_list
+
 
 def tsp_pandas(df: pd.DataFrame):
     df = df.copy()

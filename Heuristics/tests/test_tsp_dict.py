@@ -34,9 +34,6 @@ def cities():
     }
 
 
-
-
-
 def test_tsp_dict():
     cities = {
         "A": {"A": 0, "B": 1, "C": 2},

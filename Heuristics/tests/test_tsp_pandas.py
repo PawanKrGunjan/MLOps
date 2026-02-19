@@ -16,6 +16,3 @@ def test_tsp_pandas(cities):
     assert distance > 0
     assert isinstance(route, list)
     assert len(route) == len(cities)
-
-
-

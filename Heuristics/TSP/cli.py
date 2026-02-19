@@ -4,6 +4,7 @@ Command Line Interface for Heuristics package.
 
 import click
 import warnings
+
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 from .tsp_pandas import create_cities, tsp_pandas
 from .visualization import plot_path
@@ -12,6 +13,7 @@ from .visualization import plot_path
 @click.group()
 def cli():
     """TSP command-line tool."""
+
 
 @cli.command()
 @click.option("--count", default=1, type=int, help="Number of simulations to run")
@@ -32,7 +34,6 @@ def simulate(count, plot):
 
     if plot and best_route_order:
         plot_path(best_route_order)
-
 
 
 @cli.command()

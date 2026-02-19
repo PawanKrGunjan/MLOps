@@ -23,7 +23,6 @@ from .fetch_cities_lat_long import (
     my_cities,
     create_cities_dataframe,
     main,
-
 )
 
 # CLI entry
@@ -39,5 +38,5 @@ __all__ = [
     "my_cities",
     "create_cities_dataframe",
     "cli",
-    "main"
+    "main",
 ]
