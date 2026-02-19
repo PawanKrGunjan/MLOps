@@ -208,15 +208,4 @@ MIT License
 Pawan Kumar
 Machine Learning & Systems Enthusiast
 
----
 
-If you'd like next, I can:
-
-* 🔥 Add GitHub badges (build, coverage, Python version)
-* 📊 Add visualization module
-* 🐳 Create Dockerfile
-* ⚙ Add GitHub Actions CI
-* 🧪 Write professional unit tests
-* 📚 Convert this into a proper open-source package (pip-installable)
-
-Tell me what level you want next 😎
