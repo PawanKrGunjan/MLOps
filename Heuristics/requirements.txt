@@ -1,0 +1,9 @@
+click
+pandas
+click
+geopy
+pytest
+pytest-cov
+black  # For formatting
+pylint  # For linting
+matplotlib
