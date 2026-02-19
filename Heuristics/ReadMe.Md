@@ -205,7 +205,8 @@ MIT License
 
 ## 👤 Author
 
-Pawan Kumar
+Pawan Kumar Gunjan 
+
 Machine Learning & Systems Enthusiast
 
 
