@@ -1,12 +1,4 @@
-Perfect — let’s make it **production-ready** 🚀
-
-Below is a **professional, GitHub-ready README.md** tailored for your TSP CLI project.
-
-You can copy-paste this directly into `README.md`.
-
----
-
-# 🧭 Heuristic TSP Solver (CLI)
+# 🧭 Heuristic Travelling Salesman Problem (TSP) Solver (CLI)
 
 A clean, modular **Travelling Salesman Problem (TSP)** solver implemented in Python using a **Nearest Neighbor heuristic** with Pandas & NumPy.
 
