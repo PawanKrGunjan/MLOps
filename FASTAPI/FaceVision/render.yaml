@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: facevision
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: JWT_TOKEN_EXPIRE_MINUTES
+        value: "30"
+      - key: AUTH_ADMIN_USERNAME
+        sync: false
+      - key: AUTH_ADMIN_PASSWORD
+        sync: false
+      - key: AUTH_ADMIN_ROLE
+        value: admin
+      - key: AUTH_USER_USERNAME
+        sync: false
+      - key: AUTH_USER_PASSWORD
+        sync: false
+      - key: AUTH_USER_ROLE
+        value: user
