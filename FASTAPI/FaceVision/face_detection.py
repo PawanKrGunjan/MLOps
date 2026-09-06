@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from collections.abc import Generator
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Generator
 
 import cv2
 import numpy as np
-
 
 # ============================================================
 # PATH CONFIGURATION
@@ -44,7 +43,7 @@ if not logger.handlers:
     logger.setLevel(logging.INFO)
 
     formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+        "%(asctime)s | %(levelname)s | %(name)s | %(message)s",
     )
 
     file_handler = logging.FileHandler(
@@ -64,19 +63,39 @@ if not logger.handlers:
 # HAAR CASCADE
 # ============================================================
 
-CASCADE_PATH = (
-    Path(cv2.data.haarcascades)
-    / "haarcascade_frontalface_default.xml"
+ROOT_FACE_CASCADE_PATH = Path(
+    "/harr_casscade_classifiers/haarcascade_frontalface_default.xml"
 )
+ROOT_EYE_CASCADE_PATH = Path("/harr_casscade_classifiers/haarcascade_eye.xml")
+
+PROJECT_FACE_CASCADE_PATH = (
+    BASE_DIR / "harr_casscade_classifiers" / "haarcascade_frontalface_default.xml"
+)
+PROJECT_EYE_CASCADE_PATH = (
+    BASE_DIR / "harr_casscade_classifiers" / "haarcascade_eye.xml"
+)
+
+FACE_CASCADE_PATH = (
+    ROOT_FACE_CASCADE_PATH
+    if ROOT_FACE_CASCADE_PATH.exists()
+    else PROJECT_FACE_CASCADE_PATH
+)
+EYE_CASCADE_PATH = (
+    ROOT_EYE_CASCADE_PATH
+    if ROOT_EYE_CASCADE_PATH.exists()
+    else PROJECT_EYE_CASCADE_PATH
+)
+
+CASCADE_PATH = FACE_CASCADE_PATH
 
 
 # ============================================================
 # FACE DETECTOR
 # ============================================================
 
+
 class FaceDetector:
-    """
-    OpenCV face detector.
+    """OpenCV face detector.
 
     Responsibilities:
         - Load Haar Cascade
@@ -95,15 +114,14 @@ class FaceDetector:
         min_size: tuple[int, int] = (30, 30),
     ) -> None:
 
-        self.cascade_path = Path(
-            cascade_path or CASCADE_PATH
-        )
+        self.cascade_path = Path(cascade_path or CASCADE_PATH)
 
         self.scale_factor = scale_factor
         self.min_neighbors = min_neighbors
         self.min_size = min_size
 
         self.face_cascade = None
+        self.eye_cascade = None
 
         self._load_cascade()
 
@@ -112,10 +130,7 @@ class FaceDetector:
     # ========================================================
 
     def _load_cascade(self) -> None:
-        """
-        Load OpenCV Haar Cascade.
-        """
-
+        """Load OpenCV Haar Cascade files."""
         if not self.cascade_path.exists():
 
             logger.error(
@@ -123,28 +138,22 @@ class FaceDetector:
                 self.cascade_path,
             )
 
-            raise FileNotFoundError(
-                f"Haar Cascade not found: {self.cascade_path}"
-            )
+            raise FileNotFoundError(f"Haar Cascade not found: {self.cascade_path}")
 
-        self.face_cascade = cv2.CascadeClassifier(
-            str(self.cascade_path)
-        )
+        self.face_cascade = cv2.CascadeClassifier(str(self.cascade_path))
+        self.eye_cascade = cv2.CascadeClassifier(str(EYE_CASCADE_PATH))
 
-        if self.face_cascade.empty():
+        if self.face_cascade.empty() or self.eye_cascade.empty():
 
             logger.error(
-                "Failed to load Haar Cascade: %s",
+                "Failed to load Haar Cascade: face=%s eye=%s",
                 self.cascade_path,
+                EYE_CASCADE_PATH,
             )
 
-            raise RuntimeError(
-                "Failed to load OpenCV Haar Cascade"
-            )
+            raise RuntimeError("Failed to load OpenCV Haar Cascade")
 
-        logger.info(
-            "Face detector initialized successfully"
-        )
+        logger.info("Face detector initialized successfully")
 
     # ========================================================
     # DETECT FACES
@@ -154,11 +163,9 @@ class FaceDetector:
         self,
         image: np.ndarray,
     ) -> list[dict[str, int]]:
-        """
-        Detect faces in an OpenCV image.
+        """Detect faces in an OpenCV image.
 
         Returns:
-
         [
             {
                 "x": 100,
@@ -167,25 +174,19 @@ class FaceDetector:
                 "h": 150
             }
         ]
-        """
 
+        """
         if image is None:
 
-            raise ValueError(
-                "Image cannot be None"
-            )
+            raise ValueError("Image cannot be None")
 
         if not isinstance(image, np.ndarray):
 
-            raise TypeError(
-                "Image must be a NumPy array"
-            )
+            raise TypeError("Image must be a NumPy array")
 
         if image.size == 0:
 
-            raise ValueError(
-                "Image is empty"
-            )
+            raise ValueError("Image is empty")
 
         # Convert BGR image to grayscale
         gray = cv2.cvtColor(
@@ -210,7 +211,7 @@ class FaceDetector:
                     "y": int(y),
                     "w": int(w),
                     "h": int(h),
-                }
+                },
             )
 
         logger.info(
@@ -229,10 +230,7 @@ class FaceDetector:
         image: np.ndarray,
         faces: list[dict[str, int]],
     ) -> np.ndarray:
-        """
-        Draw bounding boxes around detected faces.
-        """
-
+        """Draw bounding boxes around detected faces."""
         output = image.copy()
 
         for index, face in enumerate(faces, start=1):
@@ -275,14 +273,13 @@ class FaceDetector:
         self,
         image: np.ndarray,
     ) -> tuple[np.ndarray, list[dict[str, int]]]:
-        """
-        Detect faces and draw bounding boxes.
+        """Detect faces and draw bounding boxes.
 
         Returns:
             output_image
             faces
-        """
 
+        """
         faces = self.detect_faces(image)
 
         output = self.draw_faces(
@@ -300,10 +297,7 @@ class FaceDetector:
         self,
         image_path: Path | str,
     ) -> np.ndarray:
-        """
-        Read an image from disk.
-        """
-
+        """Read an image from disk."""
         image_path = Path(image_path)
 
         if not image_path.exists():
@@ -313,13 +307,9 @@ class FaceDetector:
                 image_path,
             )
 
-            raise FileNotFoundError(
-                f"Image not found: {image_path}"
-            )
+            raise FileNotFoundError(f"Image not found: {image_path}")
 
-        image = cv2.imread(
-            str(image_path)
-        )
+        image = cv2.imread(str(image_path))
 
         if image is None:
 
@@ -328,9 +318,7 @@ class FaceDetector:
                 image_path,
             )
 
-            raise ValueError(
-                f"Unable to read image: {image_path}"
-            )
+            raise ValueError(f"Unable to read image: {image_path}")
 
         return image
 
@@ -342,15 +330,10 @@ class FaceDetector:
         self,
         image_bytes: bytes,
     ) -> np.ndarray:
-        """
-        Convert uploaded image bytes into an OpenCV image.
-        """
-
+        """Convert uploaded image bytes into an OpenCV image."""
         if not image_bytes:
 
-            raise ValueError(
-                "Uploaded image is empty"
-            )
+            raise ValueError("Uploaded image is empty")
 
         image_array = np.frombuffer(
             image_bytes,
@@ -364,13 +347,9 @@ class FaceDetector:
 
         if image is None:
 
-            logger.warning(
-                "Unable to decode uploaded image"
-            )
+            logger.warning("Unable to decode uploaded image")
 
-            raise ValueError(
-                "Invalid or unsupported image"
-            )
+            raise ValueError("Invalid or unsupported image")
 
         return image
 
@@ -383,35 +362,26 @@ class FaceDetector:
         image: np.ndarray,
         filename: str | None = None,
     ) -> Path:
-        """
-        Save an OpenCV image to LOCAL/detected.
+        """Save an OpenCV image to LOCAL/detected.
 
         Returns:
             Path of saved image.
-        """
 
+        """
         if image is None:
 
-            raise ValueError(
-                "Cannot save empty image"
-            )
+            raise ValueError("Cannot save empty image")
 
         if filename is None:
 
-            timestamp = datetime.now().strftime(
-                "%Y-%m-%d_%H-%M-%S"
-            )
+            timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d_%H-%M-%S")
 
-            filename = (
-                f"FACE_{timestamp}.jpg"
-            )
+            filename = f"FACE_{timestamp}.jpg"
 
         # Prevent directory traversal
         filename = Path(filename).name
 
-        output_path = (
-            DETECTED_DIR / filename
-        )
+        output_path = DETECTED_DIR / filename
 
         success = cv2.imwrite(
             str(output_path),
@@ -425,9 +395,7 @@ class FaceDetector:
                 output_path,
             )
 
-            raise IOError(
-                f"Failed to save image: {output_path}"
-            )
+            raise OSError(f"Failed to save image: {output_path}")
 
         logger.info(
             "Detected image saved: %s",
@@ -446,8 +414,7 @@ class FaceDetector:
         save_result: bool = True,
         filename: str | None = None,
     ) -> dict:
-        """
-        Complete uploaded-image processing pipeline.
+        """Complete uploaded-image processing pipeline.
 
         Steps:
 
@@ -463,18 +430,11 @@ class FaceDetector:
                  ↓
             return result
         """
+        logger.info("Processing uploaded image")
 
-        logger.info(
-            "Processing uploaded image"
-        )
+        image = self.decode_image(image_bytes)
 
-        image = self.decode_image(
-            image_bytes
-        )
-
-        output_image, faces = (
-            self.detect_and_draw(image)
-        )
+        output_image, faces = self.detect_and_draw(image)
 
         image_path = None
 
@@ -487,9 +447,7 @@ class FaceDetector:
 
         result = {
             "image_path": (
-                str(image_path.relative_to(BASE_DIR))
-                if image_path
-                else None
+                str(image_path.relative_to(BASE_DIR)) if image_path else None
             ),
             "num_faces": len(faces),
             "faces": faces,
@@ -511,18 +469,14 @@ class FaceDetector:
         self,
         frame: np.ndarray,
     ) -> np.ndarray:
-        """
-        Detect faces in a webcam frame and return
+        """Detect faces in a webcam frame and return
         the frame with bounding boxes.
         """
-
         if frame is None:
 
             return frame
 
-        output, _ = self.detect_and_draw(
-            frame
-        )
+        output, _ = self.detect_and_draw(frame)
 
         return output
 
@@ -538,25 +492,22 @@ face_detector = FaceDetector()
 # WEBCAM
 # ============================================================
 
+
 def generate_frames(
     camera_index: int = 0,
 ) -> Generator[bytes, None, None]:
-    """
-    Generate webcam frames for FastAPI StreamingResponse.
+    """Generate webcam frames for FastAPI StreamingResponse.
 
     Output format:
 
         multipart/x-mixed-replace
     """
-
     logger.info(
         "Starting camera index=%d",
         camera_index,
     )
 
-    camera = cv2.VideoCapture(
-        camera_index
-    )
+    camera = cv2.VideoCapture(camera_index)
 
     if not camera.isOpened():
 
@@ -565,9 +516,7 @@ def generate_frames(
             camera_index,
         )
 
-        raise RuntimeError(
-            f"Unable to open camera {camera_index}"
-        )
+        raise RuntimeError(f"Unable to open camera {camera_index}")
 
     try:
 
@@ -577,16 +526,12 @@ def generate_frames(
 
             if not success:
 
-                logger.warning(
-                    "Failed to read camera frame"
-                )
+                logger.warning("Failed to read camera frame")
 
                 break
 
             # Face detection
-            frame = face_detector.process_frame(
-                frame
-            )
+            frame = face_detector.process_frame(frame)
 
             # Encode frame as JPEG
             success, buffer = cv2.imencode(
@@ -596,9 +541,7 @@ def generate_frames(
 
             if not success:
 
-                logger.warning(
-                    "Failed to encode camera frame"
-                )
+                logger.warning("Failed to encode camera frame")
 
                 continue
 
@@ -608,22 +551,16 @@ def generate_frames(
             yield (
                 b"--frame\r\n"
                 b"Content-Type: image/jpeg\r\n"
-                b"\r\n"
-                + frame_bytes
-                + b"\r\n"
+                b"\r\n" + frame_bytes + b"\r\n"
             )
 
     except GeneratorExit:
 
-        logger.info(
-            "Camera stream closed by client"
-        )
+        logger.info("Camera stream closed by client")
 
     except Exception:
 
-        logger.exception(
-            "Unexpected error during camera streaming"
-        )
+        logger.exception("Unexpected error during camera streaming")
 
     finally:
 
@@ -639,23 +576,20 @@ def generate_frames(
 # SINGLE FRAME CAPTURE
 # ============================================================
 
+
 def capture_frame(
     camera_index: int = 0,
 ) -> np.ndarray:
-    """
-    Capture one frame from the camera.
+    """Capture one frame from the camera.
 
     Useful for testing.
     """
-
     logger.info(
         "Capturing single frame camera=%d",
         camera_index,
     )
 
-    camera = cv2.VideoCapture(
-        camera_index
-    )
+    camera = cv2.VideoCapture(camera_index)
 
     if not camera.isOpened():
 
@@ -664,9 +598,7 @@ def capture_frame(
             camera_index,
         )
 
-        raise RuntimeError(
-            f"Unable to open camera {camera_index}"
-        )
+        raise RuntimeError(f"Unable to open camera {camera_index}")
 
     try:
 
@@ -674,9 +606,7 @@ def capture_frame(
 
         if not success:
 
-            raise RuntimeError(
-                "Unable to capture camera frame"
-            )
+            raise RuntimeError("Unable to capture camera frame")
 
         return frame
 
@@ -689,39 +619,26 @@ def capture_frame(
 # CAPTURE + DETECT
 # ============================================================
 
+
 def capture_and_detect(
     camera_index: int = 0,
     save_result: bool = True,
 ) -> dict:
-    """
-    Capture one webcam frame, detect faces and optionally
+    """Capture one webcam frame, detect faces and optionally
     save the resulting image.
     """
+    frame = capture_frame(camera_index)
 
-    frame = capture_frame(
-        camera_index
-    )
-
-    output, faces = (
-        face_detector.detect_and_draw(
-            frame
-        )
-    )
+    output, faces = face_detector.detect_and_draw(frame)
 
     image_path = None
 
     if save_result:
 
-        image_path = face_detector.save_image(
-            output
-        )
+        image_path = face_detector.save_image(output)
 
     return {
-        "image_path": (
-            str(image_path.relative_to(BASE_DIR))
-            if image_path
-            else None
-        ),
+        "image_path": (str(image_path.relative_to(BASE_DIR)) if image_path else None),
         "num_faces": len(faces),
         "faces": faces,
     }
@@ -731,13 +648,12 @@ def capture_and_detect(
 # SIMPLE HEALTH CHECK
 # ============================================================
 
+
 def detector_status() -> dict:
-    """
-    Return detector status.
+    """Return detector status.
 
     Useful for /health or debugging.
     """
-
     return {
         "detector": "opencv_haar_cascade",
         "cascade_exists": CASCADE_PATH.exists(),
@@ -752,10 +668,6 @@ def detector_status() -> dict:
 
 if __name__ == "__main__":
 
-    print(
-        "Face Detection Module"
-    )
+    print("Face Detection Module")
 
-    print(
-        detector_status()
-    )
+    print(detector_status())

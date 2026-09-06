@@ -1,5 +1,4 @@
-"""
-Locust load test for FaceVision FastAPI application.
+"""Locust load test for FaceVision FastAPI application.
 
 Project:
     ~/Development/MLOps/FASTAPI
@@ -25,13 +24,12 @@ Headless:
 JWT tokens are NEVER printed.
 """
 
-import os
 import logging
+import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from locust import HttpUser, task, between, events
-
+from locust import HttpUser, between, events, task
 
 # ============================================================
 # Load environment
@@ -59,11 +57,7 @@ USER_PASSWORD = os.getenv("AUTH_USER_PASSWORD")
 # Test image
 # ============================================================
 
-TEST_IMAGE = (
-    PROJECT_ROOT
-    / "LOCAL"
-    / "FACE_2026-09-06_06-30-25.jpg"
-)
+TEST_IMAGE = PROJECT_ROOT / "LOCAL" / "FACE_2026-09-06_06-30-25.jpg"
 
 
 # ============================================================
@@ -87,24 +81,19 @@ RATE_LIMIT_HITS = 0
 # ============================================================
 
 if not TEST_IMAGE.exists():
-    raise FileNotFoundError(
-        f"Test image not found:\n{TEST_IMAGE}"
-    )
+    raise FileNotFoundError(f"Test image not found:\n{TEST_IMAGE}")
 
 if not TEST_IMAGE.is_file():
-    raise FileNotFoundError(
-        f"Test image is not a file:\n{TEST_IMAGE}"
-    )
+    raise FileNotFoundError(f"Test image is not a file:\n{TEST_IMAGE}")
 
 
 # ============================================================
 # Base Locust user
 # ============================================================
 
+
 class FaceVisionBaseUser(HttpUser):
-    """
-    Base class shared by normal and admin users.
-    """
+    """Base class shared by normal and admin users."""
 
     abstract = True
 
@@ -121,20 +110,16 @@ class FaceVisionBaseUser(HttpUser):
     # --------------------------------------------------------
 
     def login(self):
-        """
-        Authenticate against POST /login.
+        """Authenticate against POST /login.
 
         JWT is stored in memory only.
         JWT is NEVER printed.
         """
-
         global LOGIN_SUCCESS
         global LOGIN_FAILURE
 
         if not self.username or not self.password:
-            logger.error(
-                "Authentication credentials are missing from .env"
-            )
+            logger.error("Authentication credentials are missing from .env")
             return False
 
         with self.client.post(
@@ -151,21 +136,17 @@ class FaceVisionBaseUser(HttpUser):
 
                 LOGIN_FAILURE += 1
 
-                response.failure(
-                    f"Login failed: HTTP {response.status_code}"
-                )
+                response.failure(f"Login failed: HTTP {response.status_code}")
 
                 return False
 
             try:
                 data = response.json()
-            except Exception:
+            except ValueError:
 
                 LOGIN_FAILURE += 1
 
-                response.failure(
-                    "Login returned invalid JSON"
-                )
+                response.failure("Login returned invalid JSON")
 
                 return False
 
@@ -175,9 +156,7 @@ class FaceVisionBaseUser(HttpUser):
 
                 LOGIN_FAILURE += 1
 
-                response.failure(
-                    "Login response missing access_token"
-                )
+                response.failure("Login response missing access_token")
 
                 return False
 
@@ -196,10 +175,7 @@ class FaceVisionBaseUser(HttpUser):
     # --------------------------------------------------------
 
     def on_start(self):
-        """
-        Authenticate when a simulated user starts.
-        """
-
+        """Authenticate when a simulated user starts."""
         self.token = None
 
         self.login()
@@ -209,27 +185,20 @@ class FaceVisionBaseUser(HttpUser):
     # --------------------------------------------------------
 
     def auth_headers(self):
-        """
-        Return Bearer authentication headers.
-        """
-
+        """Return Bearer authentication headers."""
         if not self.token:
             return {}
 
-        return {
-            "Authorization": f"Bearer {self.token}"
-        }
+        return {"Authorization": f"Bearer {self.token}"}
 
     # --------------------------------------------------------
     # Protected URL
     # --------------------------------------------------------
 
     def protected_path(self, suffix=""):
-        """
-        Build protected endpoint path.
+        """Build protected endpoint path.
 
         Examples:
-
             /<token>
 
             /<token>/video
@@ -237,8 +206,8 @@ class FaceVisionBaseUser(HttpUser):
             /<token>/detect-faces/
 
         The token is NEVER logged.
-        """
 
+        """
         if not self.token:
             return None
 
@@ -252,11 +221,9 @@ class FaceVisionBaseUser(HttpUser):
     # --------------------------------------------------------
 
     def ensure_login(self):
-        """
-        Login again if this simulated user does not currently
+        """Login again if this simulated user does not currently
         have a valid token.
         """
-
         if self.token:
             return True
 
@@ -267,9 +234,9 @@ class FaceVisionBaseUser(HttpUser):
 # Normal User
 # ============================================================
 
+
 class FaceVisionUser(FaceVisionBaseUser):
-    """
-    Normal authenticated user.
+    """Normal authenticated user.
 
     Credentials:
         AUTH_USER_USERNAME
@@ -302,9 +269,7 @@ class FaceVisionUser(FaceVisionBaseUser):
 
             if response.status_code != 200:
 
-                response.failure(
-                    f"HTTP {response.status_code}"
-                )
+                response.failure(f"HTTP {response.status_code}")
 
             else:
 
@@ -325,9 +290,7 @@ class FaceVisionUser(FaceVisionBaseUser):
 
             if response.status_code != 200:
 
-                response.failure(
-                    f"HTTP {response.status_code}"
-                )
+                response.failure(f"HTTP {response.status_code}")
 
             else:
 
@@ -357,29 +320,21 @@ class FaceVisionUser(FaceVisionBaseUser):
 
             elif response.status_code == 401:
 
-                response.failure(
-                    "Authentication failed"
-                )
+                response.failure("Authentication failed")
 
                 self.token = None
 
             elif response.status_code == 403:
 
-                response.failure(
-                    "Permission denied"
-                )
+                response.failure("Permission denied")
 
             elif response.status_code == 429:
 
-                response.failure(
-                    "Rate limited (429)"
-                )
+                response.failure("Rate limited (429)")
 
             else:
 
-                response.failure(
-                    f"HTTP {response.status_code}"
-                )
+                response.failure(f"HTTP {response.status_code}")
 
     # --------------------------------------------------------
     # Video
@@ -406,29 +361,21 @@ class FaceVisionUser(FaceVisionBaseUser):
 
             elif response.status_code == 401:
 
-                response.failure(
-                    "Authentication failed"
-                )
+                response.failure("Authentication failed")
 
                 self.token = None
 
             elif response.status_code == 403:
 
-                response.failure(
-                    "Permission denied"
-                )
+                response.failure("Permission denied")
 
             elif response.status_code == 429:
 
-                response.failure(
-                    "Rate limited (429)"
-                )
+                response.failure("Rate limited (429)")
 
             else:
 
-                response.failure(
-                    f"HTTP {response.status_code}"
-                )
+                response.failure(f"HTTP {response.status_code}")
 
     # --------------------------------------------------------
     # Face Detection
@@ -440,9 +387,7 @@ class FaceVisionUser(FaceVisionBaseUser):
         if not self.ensure_login():
             return
 
-        path = self.protected_path(
-            "detect-faces/"
-        )
+        path = self.protected_path("detect-faces/")
 
         # IMPORTANT:
         # Open the real image for every request.
@@ -461,7 +406,7 @@ class FaceVisionUser(FaceVisionBaseUser):
                         TEST_IMAGE.name,
                         image_file,
                         "image/jpeg",
-                    )
+                    ),
                 }
 
                 with self.client.post(
@@ -478,31 +423,23 @@ class FaceVisionUser(FaceVisionBaseUser):
 
                     elif response.status_code == 401:
 
-                        response.failure(
-                            "Authentication failed"
-                        )
+                        response.failure("Authentication failed")
 
                         self.token = None
 
                     elif response.status_code == 403:
 
-                        response.failure(
-                            "Permission denied"
-                        )
+                        response.failure("Permission denied")
 
                     elif response.status_code == 429:
 
-                        response.failure(
-                            "Rate limited (429)"
-                        )
+                        response.failure("Rate limited (429)")
 
                     else:
 
-                        response.failure(
-                            f"HTTP {response.status_code}"
-                        )
+                        response.failure(f"HTTP {response.status_code}")
 
-        except Exception as exc:
+        except OSError as exc:
 
             logger.error(
                 "Unable to read test image: %s",
@@ -543,26 +480,22 @@ class FaceVisionUser(FaceVisionBaseUser):
 
             elif response.status_code == 401:
 
-                response.failure(
-                    "Authentication failed"
-                )
+                response.failure("Authentication failed")
 
                 self.token = None
 
             else:
 
-                response.failure(
-                    f"Unexpected HTTP {response.status_code}"
-                )
+                response.failure(f"Unexpected HTTP {response.status_code}")
 
 
 # ============================================================
 # Admin User
 # ============================================================
 
+
 class FaceVisionAdminUser(FaceVisionBaseUser):
-    """
-    Admin authenticated user.
+    """Admin authenticated user.
 
     Credentials:
         AUTH_ADMIN_USERNAME
@@ -595,9 +528,7 @@ class FaceVisionAdminUser(FaceVisionBaseUser):
 
             if response.status_code != 200:
 
-                response.failure(
-                    f"HTTP {response.status_code}"
-                )
+                response.failure(f"HTTP {response.status_code}")
 
             else:
 
@@ -618,9 +549,7 @@ class FaceVisionAdminUser(FaceVisionBaseUser):
 
             if response.status_code != 200:
 
-                response.failure(
-                    f"HTTP {response.status_code}"
-                )
+                response.failure(f"HTTP {response.status_code}")
 
             else:
 
@@ -650,29 +579,21 @@ class FaceVisionAdminUser(FaceVisionBaseUser):
 
             elif response.status_code == 401:
 
-                response.failure(
-                    "Authentication failed"
-                )
+                response.failure("Authentication failed")
 
                 self.token = None
 
             elif response.status_code == 403:
 
-                response.failure(
-                    "Permission denied"
-                )
+                response.failure("Permission denied")
 
             elif response.status_code == 429:
 
-                response.failure(
-                    "Rate limited (429)"
-                )
+                response.failure("Rate limited (429)")
 
             else:
 
-                response.failure(
-                    f"HTTP {response.status_code}"
-                )
+                response.failure(f"HTTP {response.status_code}")
 
     # --------------------------------------------------------
     # Face Detection
@@ -684,9 +605,7 @@ class FaceVisionAdminUser(FaceVisionBaseUser):
         if not self.ensure_login():
             return
 
-        path = self.protected_path(
-            "detect-faces/"
-        )
+        path = self.protected_path("detect-faces/")
 
         try:
 
@@ -697,7 +616,7 @@ class FaceVisionAdminUser(FaceVisionBaseUser):
                         TEST_IMAGE.name,
                         image_file,
                         "image/jpeg",
-                    )
+                    ),
                 }
 
                 with self.client.post(
@@ -714,31 +633,23 @@ class FaceVisionAdminUser(FaceVisionBaseUser):
 
                     elif response.status_code == 401:
 
-                        response.failure(
-                            "Authentication failed"
-                        )
+                        response.failure("Authentication failed")
 
                         self.token = None
 
                     elif response.status_code == 403:
 
-                        response.failure(
-                            "Permission denied"
-                        )
+                        response.failure("Permission denied")
 
                     elif response.status_code == 429:
 
-                        response.failure(
-                            "Rate limited (429)"
-                        )
+                        response.failure("Rate limited (429)")
 
                     else:
 
-                        response.failure(
-                            f"HTTP {response.status_code}"
-                        )
+                        response.failure(f"HTTP {response.status_code}")
 
-        except Exception as exc:
+        except OSError as exc:
 
             logger.error(
                 "Unable to read test image: %s",
@@ -777,22 +688,19 @@ class FaceVisionAdminUser(FaceVisionBaseUser):
 
             elif response.status_code == 401:
 
-                response.failure(
-                    "Authentication failed"
-                )
+                response.failure("Authentication failed")
 
                 self.token = None
 
             else:
 
-                response.failure(
-                    f"Unexpected HTTP {response.status_code}"
-                )
+                response.failure(f"Unexpected HTTP {response.status_code}")
 
 
 # ============================================================
 # Test Start
 # ============================================================
+
 
 @events.test_start.add_listener
 def on_test_start(environment, **kwargs):
@@ -826,9 +734,7 @@ def on_test_start(environment, **kwargs):
         bool(ADMIN_USERNAME and ADMIN_PASSWORD),
     )
 
-    logger.info(
-        "JWT tokens will NOT be logged."
-    )
+    logger.info("JWT tokens will NOT be logged.")
 
     logger.info("=" * 70)
 
@@ -836,6 +742,7 @@ def on_test_start(environment, **kwargs):
 # ============================================================
 # Test Stop
 # ============================================================
+
 
 @events.test_stop.add_listener
 def on_test_stop(environment, **kwargs):
@@ -860,4 +767,3 @@ def on_test_stop(environment, **kwargs):
     )
 
     logger.info("=" * 70)
-

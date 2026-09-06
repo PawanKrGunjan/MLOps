@@ -1,15 +1,14 @@
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
 import logging
-from logging.handlers import RotatingFileHandler
 import os
+from datetime import datetime, timedelta, timezone
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
+from typing import Annotated
 
 import jwt
 from dotenv import load_dotenv
-
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-
 
 # ============================================================
 # PATHS
@@ -38,7 +37,7 @@ if not auth_logger.handlers:
     auth_logger.setLevel(logging.INFO)
 
     formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+        "%(asctime)s | %(levelname)s | %(name)s | %(message)s",
     )
 
     file_handler = RotatingFileHandler(
@@ -61,9 +60,7 @@ if not auth_logger.handlers:
 SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 
 if not SECRET_KEY:
-    raise RuntimeError(
-        "JWT_SECRET_KEY is not configured in the .env file."
-    )
+    raise RuntimeError("JWT_SECRET_KEY is not configured in the .env file.")
 
 ALGORITHM = os.getenv(
     "JWT_ALGORITHM",
@@ -75,21 +72,19 @@ try:
         os.getenv(
             "JWT_TOKEN_EXPIRE_MINUTES",
             "30",
-        )
+        ),
     )
 except ValueError:
-    raise RuntimeError(
-        "JWT_TOKEN_EXPIRE_MINUTES must be a valid integer."
-    )
+    raise RuntimeError("JWT_TOKEN_EXPIRE_MINUTES must be a valid integer.")
 
 
 # ============================================================
 # USERS FROM .ENV
 # ============================================================
 
+
 def _get_env_user(prefix: str) -> tuple[str, dict]:
-    """
-    Load one user from environment variables.
+    """Load one user from environment variables.
 
     Expected variables:
 
@@ -97,33 +92,20 @@ def _get_env_user(prefix: str) -> tuple[str, dict]:
         {prefix}_PASSWORD
         {prefix}_ROLE
     """
+    username = os.getenv(f"{prefix}_USERNAME")
 
-    username = os.getenv(
-        f"{prefix}_USERNAME"
-    )
+    password = os.getenv(f"{prefix}_PASSWORD")
 
-    password = os.getenv(
-        f"{prefix}_PASSWORD"
-    )
-
-    role = os.getenv(
-        f"{prefix}_ROLE"
-    )
+    role = os.getenv(f"{prefix}_ROLE")
 
     if not username:
-        raise RuntimeError(
-            f"{prefix}_USERNAME is not configured."
-        )
+        raise RuntimeError(f"{prefix}_USERNAME is not configured.")
 
     if not password:
-        raise RuntimeError(
-            f"{prefix}_PASSWORD is not configured."
-        )
+        raise RuntimeError(f"{prefix}_PASSWORD is not configured.")
 
     if not role:
-        raise RuntimeError(
-            f"{prefix}_ROLE is not configured."
-        )
+        raise RuntimeError(f"{prefix}_ROLE is not configured.")
 
     return username, {
         "password": password,
@@ -131,13 +113,9 @@ def _get_env_user(prefix: str) -> tuple[str, dict]:
     }
 
 
-admin_username, admin_user = _get_env_user(
-    "AUTH_ADMIN"
-)
+admin_username, admin_user = _get_env_user("AUTH_ADMIN")
 
-normal_username, normal_user = _get_env_user(
-    "AUTH_USER"
-)
+normal_username, normal_user = _get_env_user("AUTH_USER")
 
 
 USERS = {
@@ -150,33 +128,24 @@ USERS = {
 # OAUTH2
 # ============================================================
 
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/login"
-)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/login")
 
 
 # ============================================================
 # CREATE JWT
 # ============================================================
 
+
 def create_access_token(
     username: str,
     role: str,
     expires_delta: timedelta | None = None,
 ) -> str:
-    """
-    Create a JWT access token.
-    """
-
+    """Create a JWT access token."""
     if expires_delta is None:
-        expires_delta = timedelta(
-            minutes=TOKEN_EXPIRE_MINUTES
-        )
+        expires_delta = timedelta(minutes=TOKEN_EXPIRE_MINUTES)
 
-    expire = (
-        datetime.now(timezone.utc)
-        + expires_delta
-    )
+    expire = datetime.now(timezone.utc) + expires_delta
 
     payload = {
         "sub": username,
@@ -205,27 +174,22 @@ def create_access_token(
 # VALIDATE JWT
 # ============================================================
 
+
 def validate_token(token: str) -> dict:
-    """
-    Validate JWT and return:
+    """Validate JWT and return:
 
-        {
-            "username": "...",
-            "role": "..."
-        }
+    {
+        "username": "...",
+        "role": "..."
+    }
     """
-
     if not token:
-        auth_logger.warning(
-            "Authentication failed: empty token"
-        )
+        auth_logger.warning("Authentication failed: empty token")
 
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Missing authentication token",
-            headers={
-                "WWW-Authenticate": "Bearer"
-            },
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     try:
@@ -240,16 +204,12 @@ def validate_token(token: str) -> dict:
         role = payload.get("role")
 
         if not username:
-            auth_logger.warning(
-                "Authentication failed: JWT missing subject"
-            )
+            auth_logger.warning("Authentication failed: JWT missing subject")
 
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token",
-                headers={
-                    "WWW-Authenticate": "Bearer"
-                },
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
         if not role:
@@ -261,9 +221,7 @@ def validate_token(token: str) -> dict:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token",
-                headers={
-                    "WWW-Authenticate": "Bearer"
-                },
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
         # Verify that the user still exists.
@@ -278,9 +236,7 @@ def validate_token(token: str) -> dict:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="User does not exist",
-                headers={
-                    "WWW-Authenticate": "Bearer"
-                },
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
         # Verify role against current configuration.
@@ -293,9 +249,7 @@ def validate_token(token: str) -> dict:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token",
-                headers={
-                    "WWW-Authenticate": "Bearer"
-                },
+                headers={"WWW-Authenticate": "Bearer"},
             )
 
         auth_logger.info(
@@ -311,36 +265,29 @@ def validate_token(token: str) -> dict:
 
     except jwt.ExpiredSignatureError:
 
-        auth_logger.warning(
-            "Authentication failed: expired token"
-        )
+        auth_logger.warning("Authentication failed: expired token")
 
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Token has expired",
-            headers={
-                "WWW-Authenticate": "Bearer"
-            },
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
     except jwt.InvalidTokenError:
 
-        auth_logger.warning(
-            "Authentication failed: invalid token"
-        )
+        auth_logger.warning("Authentication failed: invalid token")
 
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid authentication token",
-            headers={
-                "WWW-Authenticate": "Bearer"
-            },
+            headers={"WWW-Authenticate": "Bearer"},
         )
 
 
 # ============================================================
 # CURRENT USER
 # ============================================================
+
 
 def get_current_user(
     token: str = Depends(oauth2_scheme),
@@ -353,8 +300,9 @@ def get_current_user(
 # ADMIN CHECK
 # ============================================================
 
+
 def require_admin(
-    user: dict = Depends(get_current_user),
+    user: Annotated[dict, Depends(get_current_user)],
 ) -> dict:
 
     if user.get("role") != "admin":
@@ -378,6 +326,7 @@ def require_admin(
 # ============================================================
 # GENERIC PERMISSION CHECK
 # ============================================================
+
 
 def require_permission(
     token: str,

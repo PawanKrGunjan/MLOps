@@ -5,15 +5,16 @@ import re
 from contextlib import asynccontextmanager
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
+from typing import Annotated
 
 import uvicorn
 from fastapi import (
     FastAPI,
     File,
+    Form,
     HTTPException,
     Request,
     UploadFile,
-    Form,
 )
 from fastapi.responses import (
     FileResponse,
@@ -23,13 +24,12 @@ from fastapi.responses import (
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.base import BaseHTTPMiddleware
+
 from auth import USERS, create_access_token, require_permission
 from face_detection import (
-    DETECTED_DIR as FACE_DETECTED_DIR,
     face_detector,
     generate_frames,
 )
-
 
 # ============================================================
 # PATH CONFIGURATION
@@ -86,7 +86,7 @@ if not logger.handlers:
     logger.setLevel(logging.INFO)
 
     formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
+        "%(asctime)s | %(levelname)s | %(name)s | %(message)s",
     )
 
     file_handler = RotatingFileHandler(
@@ -108,24 +108,20 @@ if not logger.handlers:
 # JWT PATH REDACTION
 # ============================================================
 
-JWT_PATTERN = re.compile(
-    r"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$"
-)
+JWT_PATTERN = re.compile(r"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$")
 
 
 def sanitize_path(path: str) -> str:
-    """
-    Remove JWT tokens from URL paths before logging.
+    """Remove JWT tokens from URL paths before logging.
 
     Example:
-
         /eyJhbGciOiJIUzI1NiIs.../video
 
     becomes:
 
         /<TOKEN>/video
-    """
 
+    """
     if not path:
         return "/"
 
@@ -153,9 +149,9 @@ def sanitize_path(path: str) -> str:
 # ACCESS LOG MIDDLEWARE
 # ============================================================
 
+
 class RedactTokenMiddleware(BaseHTTPMiddleware):
-    """
-    Application-level access logger.
+    """Application-level access logger.
 
     JWT tokens are removed from URL paths before
     writing anything to the application log.
@@ -176,15 +172,9 @@ class RedactTokenMiddleware(BaseHTTPMiddleware):
 
         finally:
 
-            safe_path = sanitize_path(
-                request.url.path
-            )
+            safe_path = sanitize_path(request.url.path)
 
-            status_code = (
-                response.status_code
-                if response is not None
-                else 500
-            )
+            status_code = response.status_code if response is not None else 500
 
             logger.info(
                 "%s %s HTTP/%s %s",
@@ -202,10 +192,10 @@ class RedactTokenMiddleware(BaseHTTPMiddleware):
 # FASTAPI LIFESPAN
 # ============================================================
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """
-    Application lifecycle handler.
+    """Application lifecycle handler.
 
     Startup code runs before yield.
     Shutdown code runs after yield.
@@ -215,18 +205,13 @@ async def lifespan(app: FastAPI):
         @app.on_event("startup")
         @app.on_event("shutdown")
     """
-
     # --------------------------------------------------------
     # STARTUP
     # --------------------------------------------------------
 
-    logger.info(
-        "=================================================="
-    )
+    logger.info("==================================================")
 
-    logger.info(
-        "Face Detection API starting"
-    )
+    logger.info("Face Detection API starting")
 
     logger.info(
         "Base directory: %s",
@@ -256,18 +241,11 @@ async def lifespan(app: FastAPI):
         ),
     )
 
-    logger.info(
-        "JWT redaction logging enabled"
-    )
+    logger.info("JWT redaction logging enabled")
 
-    logger.info(
-        "Uvicorn access logging should be disabled "
-        "to prevent JWT exposure"
-    )
+    logger.info("Uvicorn access logging should be disabled to prevent JWT exposure")
 
-    logger.info(
-        "=================================================="
-    )
+    logger.info("==================================================")
 
     # --------------------------------------------------------
     # APPLICATION RUNS
@@ -279,9 +257,7 @@ async def lifespan(app: FastAPI):
     # SHUTDOWN
     # --------------------------------------------------------
 
-    logger.info(
-        "Face Detection API shutting down"
-    )
+    logger.info("Face Detection API shutting down")
 
 
 # ============================================================
@@ -290,9 +266,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="Face Detection API",
-    description=(
-        "JWT protected OpenCV face detection application"
-    ),
+    description=("JWT protected OpenCV face detection application"),
     version="1.0.0",
     lifespan=lifespan,
 )
@@ -302,18 +276,14 @@ app = FastAPI(
 # MIDDLEWARE
 # ============================================================
 
-app.add_middleware(
-    RedactTokenMiddleware
-)
+app.add_middleware(RedactTokenMiddleware)
 
 
 # ============================================================
 # TEMPLATES
 # ============================================================
 
-templates = Jinja2Templates(
-    directory=str(TEMPLATES_DIR)
-)
+templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 
 
 # ============================================================
@@ -324,9 +294,7 @@ if STATIC_DIR.exists():
 
     app.mount(
         "/static",
-        StaticFiles(
-            directory=str(STATIC_DIR)
-        ),
+        StaticFiles(directory=str(STATIC_DIR)),
         name="static",
     )
 
@@ -335,13 +303,11 @@ if STATIC_DIR.exists():
 # HELPER FUNCTIONS
 # ============================================================
 
+
 def get_authenticated_user(
     token: str,
 ) -> dict:
-    """
-    Validate JWT and allow both admin and user roles.
-    """
-
+    """Validate JWT and allow both admin and user roles."""
     return require_permission(
         token,
         ["admin", "user"],
@@ -351,11 +317,9 @@ def get_authenticated_user(
 def validate_filename(
     filename: str,
 ) -> str:
-    """
-    Prevent path traversal when accessing
+    """Prevent path traversal when accessing
     detected images.
     """
-
     safe_filename = Path(filename).name
 
     if safe_filename != filename:
@@ -376,10 +340,7 @@ def validate_filename(
 
 
 def face_detector_status() -> dict:
-    """
-    Internal detector status helper.
-    """
-
+    """Internal detector status helper."""
     return {
         "status": "ok",
         "detector": "opencv_haar_cascade",
@@ -394,6 +355,7 @@ def face_detector_status() -> dict:
 # PUBLIC HOME PAGE
 # ============================================================
 
+
 @app.get(
     "/",
     response_class=HTMLResponse,
@@ -401,16 +363,12 @@ def face_detector_status() -> dict:
 async def home(
     request: Request,
 ):
-    """
-    Public landing page.
+    """Public landing page.
 
     Login is expected to be displayed as a
     popup/modal from this page.
     """
-
-    logger.info(
-        "Public home page requested"
-    )
+    logger.info("Public home page requested")
 
     return templates.TemplateResponse(
         request=request,
@@ -421,6 +379,7 @@ async def home(
 # ============================================================
 # LOGIN
 # ============================================================
+
 
 @app.post("/login")
 async def login(
@@ -452,23 +411,17 @@ async def login(
 # FAVICON
 # ============================================================
 
+
 @app.get(
     "/favicon.ico",
 )
 async def favicon():
-    """
-    Prevent /favicon.ico from being interpreted as a JWT.
-    """
-
-    favicon_path = (
-        STATIC_DIR / "favicon.ico"
-    )
+    """Prevent /favicon.ico from being interpreted as a JWT."""
+    favicon_path = STATIC_DIR / "favicon.ico"
 
     if favicon_path.exists():
 
-        return FileResponse(
-            favicon_path
-        )
+        return FileResponse(favicon_path)
 
     return HTMLResponse(
         content="",
@@ -480,14 +433,12 @@ async def favicon():
 # HEALTH CHECK
 # ============================================================
 
+
 @app.get(
     "/health",
 )
 async def health():
-    """
-    Application health check.
-    """
-
+    """Application health check."""
     return {
         "status": "ok",
         "service": "face_detection",
@@ -499,20 +450,19 @@ async def health():
 # DETECTOR STATUS
 # ============================================================
 
+
 @app.get(
     "/detector-status",
 )
 async def detector_status():
-    """
-    Return OpenCV detector status.
-    """
-
+    """Return OpenCV detector status."""
     return face_detector_status()
 
 
 # ============================================================
 # AUTHENTICATED DASHBOARD
 # ============================================================
+
 
 @app.get(
     "/{token}",
@@ -522,30 +472,26 @@ async def authenticated_home(
     request: Request,
     token: str,
 ):
-    """
-    JWT-protected dashboard.
+    """JWT-protected dashboard.
 
     URL:
 
         /<JWT>
     """
-
-    user = get_authenticated_user(
-        token
-    )
+    user = get_authenticated_user(token)
 
     username = str(
         user.get(
             "username",
             "User",
-        )
+        ),
     )
 
     role = str(
         user.get(
             "role",
             "unknown",
-        )
+        ),
     )
 
     logger.info(
@@ -565,17 +511,11 @@ async def authenticated_home(
     )
 
     # Never cache a page containing the JWT.
-    response.headers[
-        "Cache-Control"
-    ] = "no-store"
+    response.headers["Cache-Control"] = "no-store"
 
-    response.headers[
-        "Pragma"
-    ] = "no-cache"
+    response.headers["Pragma"] = "no-cache"
 
-    response.headers[
-        "Expires"
-    ] = "0"
+    response.headers["Expires"] = "0"
 
     return response
 
@@ -584,23 +524,20 @@ async def authenticated_home(
 # LIVE CAMERA
 # ============================================================
 
+
 @app.get(
     "/{token}/video",
 )
 async def video_feed(
     token: str,
 ):
-    """
-    JWT-protected live webcam feed.
+    """JWT-protected live webcam feed.
 
     URL:
 
         /<JWT>/video
     """
-
-    user = get_authenticated_user(
-        token
-    )
+    user = get_authenticated_user(token)
 
     logger.info(
         "Camera stream requested username=%s role=%s",
@@ -610,10 +547,7 @@ async def video_feed(
 
     return StreamingResponse(
         generate_frames(),
-        media_type=(
-            "multipart/x-mixed-replace; "
-            "boundary=frame"
-        ),
+        media_type=("multipart/x-mixed-replace; boundary=frame"),
     )
 
 
@@ -621,16 +555,16 @@ async def video_feed(
 # FACE DETECTION
 # ============================================================
 
+
 @app.post(
     "/{token}/detect-faces/",
 )
 async def detect_faces(
     token: str,
-    file: UploadFile = File(...),
+    file: Annotated[UploadFile, File(...)],
     save_result: bool = True,
 ):
-    """
-    Detect faces in an uploaded image.
+    """Detect faces in an uploaded image.
 
     URL:
 
@@ -643,10 +577,7 @@ async def detect_faces(
         PNG
         WEBP
     """
-
-    user = get_authenticated_user(
-        token
-    )
+    user = get_authenticated_user(token)
 
     username = user["username"]
     role = user["role"]
@@ -654,19 +585,12 @@ async def detect_faces(
     # Never log the JWT.
     # Only the sanitized filename is logged.
 
-    filename = (
-        file.filename or ""
-    )
+    filename = file.filename or ""
 
-    safe_log_filename = (
-        Path(filename).name
-        if filename
-        else "unknown"
-    )
+    safe_log_filename = Path(filename).name if filename else "unknown"
 
     logger.info(
-        "Face detection requested "
-        "username=%s role=%s filename=%s",
+        "Face detection requested username=%s role=%s filename=%s",
         username,
         role,
         safe_log_filename,
@@ -683,11 +607,7 @@ async def detect_faces(
             detail="Filename is required",
         )
 
-    extension = (
-        Path(filename)
-        .suffix
-        .lower()
-    )
+    extension = Path(filename).suffix.lower()
 
     allowed_extensions = {
         ".jpg",
@@ -699,18 +619,14 @@ async def detect_faces(
     if extension not in allowed_extensions:
 
         logger.warning(
-            "Unsupported image format "
-            "username=%s extension=%s",
+            "Unsupported image format username=%s extension=%s",
             username,
             extension,
         )
 
         raise HTTPException(
             status_code=400,
-            detail=(
-                "Unsupported image format. "
-                "Use JPG, JPEG, PNG or WEBP."
-            ),
+            detail=("Unsupported image format. Use JPG, JPEG, PNG or WEBP."),
         )
 
     # --------------------------------------------------------
@@ -724,8 +640,7 @@ async def detect_faces(
     except Exception:
 
         logger.exception(
-            "Failed to read uploaded file "
-            "username=%s",
+            "Failed to read uploaded file username=%s",
             username,
         )
 
@@ -785,8 +700,7 @@ async def detect_faces(
     result["role"] = role
 
     logger.info(
-        "Face detection completed "
-        "username=%s faces=%s",
+        "Face detection completed username=%s faces=%s",
         username,
         result["num_faces"],
     )
@@ -798,6 +712,7 @@ async def detect_faces(
 # SERVE DETECTED IMAGE
 # ============================================================
 
+
 @app.get(
     "/{token}/images/{filename}",
 )
@@ -805,34 +720,26 @@ async def get_detected_image(
     token: str,
     filename: str,
 ):
-    """
-    Serve a detected image.
+    """Serve a detected image.
 
-    IMPORTANT:
+    Important:
     The image is protected by JWT.
 
     URL:
 
         /<JWT>/images/<filename>
+
     """
+    user = get_authenticated_user(token)
 
-    user = get_authenticated_user(
-        token
-    )
+    safe_filename = validate_filename(filename)
 
-    safe_filename = validate_filename(
-        filename
-    )
-
-    image_path = (
-        DETECTED_DIR / safe_filename
-    )
+    image_path = DETECTED_DIR / safe_filename
 
     if not image_path.exists():
 
         logger.warning(
-            "Detected image not found "
-            "username=%s filename=%s",
+            "Detected image not found username=%s filename=%s",
             user["username"],
             safe_filename,
         )
@@ -843,8 +750,7 @@ async def get_detected_image(
         )
 
     logger.info(
-        "Detected image accessed "
-        "username=%s filename=%s",
+        "Detected image accessed username=%s filename=%s",
         user["username"],
         safe_filename,
     )
@@ -868,13 +774,9 @@ async def get_detected_image(
         media_type=media_type,
     )
 
-    response.headers[
-        "Cache-Control"
-    ] = "no-store"
+    response.headers["Cache-Control"] = "no-store"
 
-    response.headers[
-        "Pragma"
-    ] = "no-cache"
+    response.headers["Pragma"] = "no-cache"
 
     return response
 
@@ -890,7 +792,6 @@ if __name__ == "__main__":
         host="127.0.0.1",
         port=8000,
         reload=True,
-
         # VERY IMPORTANT:
         #
         # Do NOT allow Uvicorn's access logger to print:
@@ -902,6 +803,5 @@ if __name__ == "__main__":
         #     GET /<TOKEN>/video
         #
         access_log=False,
-
         log_level="info",
     )
