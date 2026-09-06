@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+<title>Face Detection System</title>
+
+<link
+    rel="stylesheet"
+    href="/static/css/style.css"
+> 
+
+</head>
+
+<body class="home-page">
+ 
+<!-- =========================
+     NAVBAR
+========================== -->
+<header class="navbar">
+
+    <div class="nav-brand">
+
+        <div class="brand-icon">◉</div>
+
+        <div>
+            <h2>FaceVision</h2>
+            <span>AI Face Detection</span>
+        </div>
+
+    </div>
+
+    <button
+        type="button"
+        class="btn btn-primary"
+        onclick="openLoginModal()"
+    >
+        Sign In
+    </button>
+
+</header>
+
+
+<!-- =========================
+     HERO SECTION
+========================== -->
+<main class="hero-section">
+
+    <div class="hero-content">
+
+        <div class="hero-badge">
+            <span class="pulse-dot"></span>
+            Computer Vision System
+        </div>
+
+        <h1>
+            Intelligent
+            <span>Face Detection</span>
+            System
+        </h1>
+
+        <p class="hero-description">
+            Detect faces in real-time using your camera or
+            uploaded images with a fast and simple AI-powered
+            computer vision platform.
+        </p>
+
+        <div class="hero-actions">
+
+            <button
+                type="button"
+                class="btn btn-primary btn-large"
+                onclick="openLoginModal()"
+            >
+                Get Started
+                <span>→</span>
+            </button>
+
+            <a
+                href="#features"
+                class="btn btn-secondary btn-large"
+            >
+                Learn More
+            </a>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         HERO VISUAL
+    ========================== -->
+    <div class="hero-visual">
+
+        <div class="scanner-card">
+
+            <div class="scanner-header">
+
+                <span>LIVE ANALYSIS</span>
+
+                <span class="live-indicator">
+                    <span class="pulse-dot"></span>
+                    READY
+                </span>
+
+            </div>
+
+
+            <div class="face-placeholder">
+
+                <div class="face-outline">
+
+                    <div class="face-eyes">
+                        <span></span>
+                        <span></span>
+                    </div>
+
+                    <div class="face-nose"></div>
+
+                    <div class="face-mouth"></div>
+
+                </div>
+
+                <div class="scan-line"></div>
+
+                <div class="detection-corner top-left"></div>
+                <div class="detection-corner top-right"></div>
+                <div class="detection-corner bottom-left"></div>
+                <div class="detection-corner bottom-right"></div>
+
+            </div>
+
+
+            <div class="scanner-footer">
+
+                <div>
+                    <small>ENGINE</small>
+                    <strong>OpenCV</strong>
+                </div>
+
+                <div>
+                    <small>STATUS</small>
+                    <strong>Ready</strong>
+                </div>
+
+                <div>
+                    <small>MODE</small>
+                    <strong>AI Vision</strong>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+
+<!-- =========================
+     FEATURES
+========================== -->
+<section
+    id="features"
+    class="features-section"
+>
+
+    <div class="section-heading">
+
+        <div class="hero-badge">
+            FEATURES
+        </div>
+
+        <h2>
+            Powerful yet simple
+        </h2>
+
+        <p>
+            Everything you need for basic face detection
+            and computer vision experimentation.
+        </p>
+
+    </div>
+
+
+    <div class="feature-grid">
+
+        <!-- Feature 1 -->
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                📷
+            </div>
+
+            <h3>Live Camera</h3>
+
+            <p>
+                Start your webcam and view the live video
+                stream directly from the dashboard.
+            </p>
+
+        </div>
+
+
+        <!-- Feature 2 -->
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                🧠
+            </div>
+
+            <h3>Face Detection</h3>
+
+            <p>
+                Detect faces from uploaded images using
+                OpenCV's computer vision capabilities.
+            </p>
+
+        </div>
+
+
+        <!-- Feature 3 -->
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                ⚡
+            </div>
+
+            <h3>Fast Processing</h3>
+
+            <p>
+                Process images quickly and receive the
+                detection result through the API.
+            </p>
+
+        </div>
+
+
+        <!-- Feature 4 -->
+        <div class="feature-card">
+
+            <div class="feature-icon">
+                🔐
+            </div>
+
+            <h3>JWT Protected</h3>
+
+            <p>
+                Dashboard and detection APIs are protected
+                using JWT-based authentication.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     FOOTER
+========================== -->
+<footer class="footer">
+
+    <p>
+        © 2026 FaceVision. Face Detection System.
+    </p>
+
+    <p>
+        Powered by FastAPI + OpenCV
+    </p>
+
+</footer>
+
+
+<!-- =====================================================
+     LOGIN MODAL
+====================================================== -->
+<div
+    id="loginModal"
+    class="login-modal"
+    aria-hidden="true"
+>
+
+    <!-- Background overlay -->
+    <div
+        class="login-modal-overlay"
+        onclick="closeLoginModal()"
+    ></div>
+
+
+    <!-- Login box -->
+    <div
+        class="login-modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="loginTitle"
+    >
+
+        <!-- Close button -->
+        <button
+            type="button"
+            class="login-modal-close"
+            onclick="closeLoginModal()"
+            aria-label="Close login"
+        >
+            ×
+        </button>
+
+
+        <!-- Header -->
+        <div class="login-modal-header">
+
+            <div class="brand-icon">
+                ◉
+            </div>
+
+            <h2 id="loginTitle">
+                Welcome Back
+            </h2>
+
+            <p>
+                Sign in to access FaceVision
+            </p>
+
+        </div>
+
+
+        <!-- Login Form -->
+        <form
+            id="loginForm"
+            class="login-form"
+        >
+
+            <!-- Username -->
+            <div class="form-group">
+
+                <label for="loginUsername">
+                    Username
+                </label>
+
+                <input
+                    type="text"
+                    id="loginUsername"
+                    name="username"
+                    autocomplete="username"
+                    placeholder="Enter your username"
+                    required
+                >
+
+            </div>
+
+
+            <!-- Password -->
+            <div class="form-group">
+
+                <label for="loginPassword">
+                    Password
+                </label>
+
+                <input
+                    type="password"
+                    id="loginPassword"
+                    name="password"
+                    autocomplete="current-password"
+                    placeholder="Enter your password"
+                    required
+                >
+
+            </div>
+
+
+            <!-- Login Error -->
+            <div
+                id="loginError"
+                class="alert alert-error"
+                style="display: none;"
+            ></div>
+
+
+            <!-- Submit -->
+            <button
+                type="submit"
+                id="loginButton"
+                class="btn btn-primary login-submit"
+            >
+                Sign In
+            </button>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- =====================================================
+     LOGIN MODAL JAVASCRIPT
+====================================================== -->
+<script>
+
+    function openLoginModal() {
+
+        const modal =
+            document.getElementById("loginModal");
+
+        const username =
+            document.getElementById("loginUsername");
+
+        const error =
+            document.getElementById("loginError");
+
+
+        modal.classList.add("active");
+
+        modal.setAttribute(
+            "aria-hidden",
+            "false"
+        );
+
+        error.style.display = "none";
+
+        setTimeout(function () {
+            username.focus();
+        }, 100);
+
+    }
+
+
+    function closeLoginModal() {
+
+        const modal =
+            document.getElementById("loginModal");
+
+        const error =
+            document.getElementById("loginError");
+
+
+        modal.classList.remove("active");
+
+        modal.setAttribute(
+            "aria-hidden",
+            "true"
+        );
+
+        error.style.display = "none";
+
+    }
+
+
+    /*
+     * Close modal when ESC is pressed.
+     */
+    document.addEventListener(
+        "keydown",
+        function (event) {
+
+            if (event.key === "Escape") {
+                closeLoginModal();
+            }
+
+        }
+    );
+
+
+    /*
+     * Login form submission.
+     */
+    document
+        .getElementById("loginForm")
+        .addEventListener(
+            "submit",
+            async function (event) {
+
+                event.preventDefault();
+
+
+                const username =
+                    document
+                        .getElementById("loginUsername")
+                        .value
+                        .trim();
+
+                const password =
+                    document
+                        .getElementById("loginPassword")
+                        .value;
+
+                const error =
+                    document
+                        .getElementById("loginError");
+
+                const button =
+                    document
+                        .getElementById("loginButton");
+
+
+                /*
+                 * Reset error.
+                 */
+                error.textContent = "";
+
+                error.style.display = "none";
+
+
+                /*
+                 * Disable button while
+                 * authentication is running.
+                 */
+                button.disabled = true;
+
+                button.textContent =
+                    "Signing in...";
+
+
+                try {
+
+                    /*
+                     * FastAPI Form(...) expects
+                     * application/x-www-form-urlencoded.
+                     */
+                    const formData =
+                        new URLSearchParams();
+
+                    formData.append(
+                        "username",
+                        username
+                    );
+
+                    formData.append(
+                        "password",
+                        password
+                    );
+
+
+                    /*
+                     * Same-origin request.
+                     *
+                     * IMPORTANT:
+                     * No port 8001 here.
+                     */
+                    const response =
+                        await fetch(
+                            "/login",
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/x-www-form-urlencoded"
+                                },
+
+                                body: formData,
+
+                                credentials:
+                                    "same-origin"
+                            }
+                        );
+
+
+                    /*
+                     * Safely parse JSON.
+                     */
+                    let data;
+
+                    try {
+
+                        data =
+                            await response.json();
+
+                    } catch {
+
+                        throw new Error(
+                            "Invalid response from server."
+                        );
+
+                    }
+
+
+                    /*
+                     * Authentication failed.
+                     */
+                    if (!response.ok) {
+
+                        throw new Error(
+                            data.detail ||
+                            "Invalid username or password."
+                        );
+
+                    }
+
+
+                    /*
+                     * Make sure the server returned
+                     * an access token.
+                     */
+                    if (!data.access_token) {
+
+                        throw new Error(
+                            "Authentication succeeded but no token was returned."
+                        );
+
+                    }
+
+
+                    /*
+                     * IMPORTANT:
+                     *
+                     * DO NOT console.log()
+                     * the JWT.
+                     *
+                     * Redirect directly to:
+                     *
+                     * /<JWT>
+                     */
+                    window.location.href =
+                        "/" +
+                        encodeURIComponent(
+                            data.access_token
+                        );
+
+                }
+
+
+                catch (err) {
+
+                    error.textContent =
+                        err.message ||
+                        "Login failed.";
+
+                    error.style.display =
+                        "block";
+
+                }
+
+
+                finally {
+
+                    button.disabled =
+                        false;
+
+                    button.textContent =
+                        "Sign In";
+
+                }
+
+            }
+        );
+
+</script> 
+
+</body>
+</html>

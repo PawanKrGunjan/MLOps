@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Sign In - FaceVision</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/css/style.css"
+    >
+
+</head>
+
+
+<body class="login-page">
+
+    <div class="login-container">
+
+        <div class="login-card">
+
+            <!-- ================================================= -->
+            <!-- LOGO -->
+            <!-- ================================================= -->
+
+            <div class="login-logo">
+
+                <div class="brand-icon">
+                    ◉
+                </div>
+
+                <h1>
+                    FaceVision
+                </h1>
+
+                <p>
+                    AI Face Detection System
+                </p>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- HEADING -->
+            <!-- ================================================= -->
+
+            <div class="login-heading">
+
+                <h2>
+                    Welcome back
+                </h2>
+
+                <p>
+                    Sign in to access your dashboard
+                </p>
+
+            </div>
+
+
+            <!-- ================================================= -->
+            <!-- LOGIN FORM -->
+            <!-- ================================================= -->
+
+            <form
+                id="loginForm"
+                class="login-form"
+                autocomplete="on"
+            >
+
+                <!-- Username -->
+
+                <div class="form-group">
+
+                    <label for="username">
+                        Username
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <span
+                            class="input-icon"
+                            aria-hidden="true"
+                        >
+                            👤
+                        </span>
+
+                        <input
+                            type="text"
+                            id="username"
+                            name="username"
+                            placeholder="Enter username"
+                            autocomplete="username"
+                            autocapitalize="none"
+                            spellcheck="false"
+                            required
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <!-- Password -->
+
+                <div class="form-group">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <div class="input-wrapper">
+
+                        <span
+                            class="input-icon"
+                            aria-hidden="true"
+                        >
+                            🔒
+                        </span>
+
+                        <input
+                            type="password"
+                            id="password"
+                            name="password"
+                            placeholder="Enter password"
+                            autocomplete="current-password"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            id="togglePassword"
+                            class="password-toggle"
+                            aria-label="Show password"
+                            aria-pressed="false"
+                        >
+                            👁
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- Login error -->
+
+                <div
+                    id="loginError"
+                    class="alert alert-error"
+                    style="display: none;"
+                    role="alert"
+                    aria-live="polite"
+                ></div>
+
+
+                <!-- Login button -->
+
+                <button
+                    type="submit"
+                    id="loginButton"
+                    class="btn btn-primary btn-login"
+                >
+
+                    <span id="loginButtonText">
+                        Sign In
+                    </span>
+
+                    <span
+                        id="loginSpinner"
+                        class="spinner"
+                        style="display: none;"
+                        aria-hidden="true"
+                    ></span>
+
+                </button>
+
+            </form>
+
+
+            <!-- ================================================= -->
+            <!-- FOOTER -->
+            <!-- ================================================= -->
+
+            <div class="login-footer">
+
+                <a href="/">
+                    ← Back to Home
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- LOGIN SCRIPT -->
+    <!-- ========================================================= -->
+
+    <script>
+
+        /*
+         * ========================================================
+         * ELEMENTS
+         * ========================================================
+         */
+
+        const loginForm =
+            document.getElementById("loginForm");
+
+        const loginButton =
+            document.getElementById("loginButton");
+
+        const loginButtonText =
+            document.getElementById("loginButtonText");
+
+        const loginSpinner =
+            document.getElementById("loginSpinner");
+
+        const loginError =
+            document.getElementById("loginError");
+
+        const usernameInput =
+            document.getElementById("username");
+
+        const passwordInput =
+            document.getElementById("password");
+
+        const togglePassword =
+            document.getElementById("togglePassword");
+
+
+        /*
+         * ========================================================
+         * SHOW ERROR
+         * ========================================================
+         */
+
+        function showLoginError(message) {
+
+            loginError.textContent =
+                message || "Login failed.";
+
+            loginError.style.display =
+                "block";
+
+        }
+
+
+        /*
+         * ========================================================
+         * HIDE ERROR
+         * ========================================================
+         */
+
+        function hideLoginError() {
+
+            loginError.textContent = "";
+
+            loginError.style.display =
+                "none";
+
+        }
+
+
+        /*
+         * ========================================================
+         * SET LOGIN BUTTON STATE
+         * ========================================================
+         */
+
+        function setLoginLoading(isLoading) {
+
+            loginButton.disabled =
+                isLoading;
+
+            if (isLoading) {
+
+                loginButtonText.textContent =
+                    "Signing in...";
+
+                loginSpinner.style.display =
+                    "inline-block";
+
+            } else {
+
+                loginButtonText.textContent =
+                    "Sign In";
+
+                loginSpinner.style.display =
+                    "none";
+
+            }
+
+        }
+
+
+        /*
+         * ========================================================
+         * PASSWORD VISIBILITY
+         * ========================================================
+         */
+
+        togglePassword.addEventListener(
+            "click",
+            function () {
+
+                const showingPassword =
+                    passwordInput.type === "text";
+
+
+                if (showingPassword) {
+
+                    passwordInput.type =
+                        "password";
+
+                    togglePassword.textContent =
+                        "👁";
+
+                    togglePassword.setAttribute(
+                        "aria-label",
+                        "Show password"
+                    );
+
+                    togglePassword.setAttribute(
+                        "aria-pressed",
+                        "false"
+                    );
+
+                } else {
+
+                    passwordInput.type =
+                        "text";
+
+                    togglePassword.textContent =
+                        "🙈";
+
+                    togglePassword.setAttribute(
+                        "aria-label",
+                        "Hide password"
+                    );
+
+                    togglePassword.setAttribute(
+                        "aria-pressed",
+                        "true"
+                    );
+
+                }
+
+            }
+        );
+
+
+        /*
+         * ========================================================
+         * LOGIN
+         * ========================================================
+         */
+
+        loginForm.addEventListener(
+            "submit",
+            async function (event) {
+
+                event.preventDefault();
+
+                hideLoginError();
+
+                setLoginLoading(true);
+
+
+                /*
+                 * Get credentials.
+                 *
+                 * IMPORTANT:
+                 * Never log these values.
+                 */
+
+                const username =
+                    usernameInput.value.trim();
+
+                const password =
+                    passwordInput.value;
+
+
+                /*
+                 * Basic validation
+                 */
+
+                if (!username) {
+
+                    showLoginError(
+                        "Please enter your username."
+                    );
+
+                    setLoginLoading(false);
+
+                    usernameInput.focus();
+
+                    return;
+
+                }
+
+
+                if (!password) {
+
+                    showLoginError(
+                        "Please enter your password."
+                    );
+
+                    setLoginLoading(false);
+
+                    passwordInput.focus();
+
+                    return;
+
+                }
+
+
+                /*
+                 * Create form body expected by
+                 * FastAPI OAuth2-style login.
+                 */
+
+                const formData =
+                    new URLSearchParams();
+
+                formData.append(
+                    "username",
+                    username
+                );
+
+                formData.append(
+                    "password",
+                    password
+                );
+
+
+                try {
+
+                    /*
+                     * IMPORTANT:
+                     *
+                     * Same-origin request.
+                     *
+                     * Old:
+                     *
+                     * http://127.0.0.1:8001/login
+                     *
+                     * New:
+                     *
+                     * /login
+                     */
+
+                    const response =
+                        await fetch(
+                            "/login",
+                            {
+                                method: "POST",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/x-www-form-urlencoded",
+
+                                    "Accept":
+                                        "application/json"
+                                },
+
+                                body: formData,
+
+                                credentials: "same-origin"
+                            }
+                        );
+
+
+                    /*
+                     * Try to parse JSON safely.
+                     */
+
+                    let data = null;
+
+                    try {
+
+                        data =
+                            await response.json();
+
+                    } catch {
+
+                        data = null;
+
+                    }
+
+
+                    /*
+                     * Authentication failed.
+                     */
+
+                    if (!response.ok) {
+
+                        const message =
+                            data &&
+                            data.detail
+                                ? data.detail
+                                : "Invalid username or password.";
+
+                        throw new Error(
+                            message
+                        );
+
+                    }
+
+
+                    /*
+                     * Extract JWT.
+                     *
+                     * IMPORTANT:
+                     *
+                     * Do NOT:
+                     *
+                     * console.log(data)
+                     * console.log(data.access_token)
+                     * console.log(token)
+                     */
+
+                    const token =
+                        data &&
+                        data.access_token;
+
+
+                    if (!token) {
+
+                        throw new Error(
+                            "Authentication token was not returned."
+                        );
+
+                    }
+
+
+                    /*
+                     * Redirect to protected dashboard.
+                     *
+                     * Desired URL:
+                     *
+                     * http://127.0.0.1:8000/<JWT>
+                     *
+                     * Using relative navigation keeps
+                     * the application host/port configurable.
+                     */
+
+                    window.location.href =
+                        "/" +
+                        encodeURIComponent(token);
+
+                } catch (error) {
+
+                    /*
+                     * Do NOT log the error object if
+                     * it might contain request details.
+                     *
+                     * Display only the safe message.
+                     */
+
+                    showLoginError(
+                        error &&
+                        error.message
+                            ? error.message
+                            : "Login failed. Please try again."
+                    );
+
+                    setLoginLoading(false);
+
+                }
+
+            }
+        );
+
+
+        /*
+         * ========================================================
+         * ENTER KEY / FOCUS
+         * ========================================================
+         */
+
+        window.addEventListener(
+            "load",
+            function () {
+
+                usernameInput.focus();
+
+            }
+        );
+
+    </script>
+
+</body>
+</html>

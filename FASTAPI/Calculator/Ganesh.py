@@ -70,7 +70,7 @@ def require_admin(user: Annotated[dict, Depends(get_current_user)]):
 @app.get("/")
 async def index(user: Annotated[dict, Depends(get_current_user)]):
     #return {"message": "Hello World"}
-    return f"Mathematics Claculator"
+    return f"Mathematics Calculator"
 
 # Calculator input schema
 class CalculatorInput(BaseModel):

@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Dashboard - FaceVision</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/css/style.css"
+    >
+</head>
+
+
+<body class="dashboard-page">
+
+    <!-- =========================
+         NAVBAR
+    ========================== -->
+
+    <header class="dashboard-navbar">
+
+        <div class="nav-brand">
+
+            <div class="brand-icon">
+                ◉
+            </div>
+
+            <div>
+                <h2>FaceVision</h2>
+
+                <span>
+                    Face Detection System
+                </span>
+            </div>
+
+        </div>
+
+
+        <div class="user-area">
+
+            <div class="user-info">
+
+                <span class="user-label">
+                    Logged in as
+                </span>
+
+                <strong>
+                    {{ username }}
+                </strong>
+
+            </div>
+
+
+            <div class="role-badge">
+                {{ role }}
+            </div>
+
+
+            <button
+                type="button"
+                class="btn btn-danger btn-small"
+                onclick="logout()"
+            >
+                Logout
+            </button>
+
+        </div>
+
+    </header>
+
+
+
+    <!-- =========================
+         MAIN
+    ========================== -->
+
+    <main class="dashboard-container">
+
+
+        <!-- =========================
+             WELCOME
+        ========================== -->
+
+        <section class="welcome-section">
+
+            <div>
+
+                <div class="hero-badge">
+                    SECURE DASHBOARD
+                </div>
+
+                <h1>
+                    Welcome,
+                    <span>{{ username }}</span>
+                </h1>
+
+                <p>
+                    Use your camera or upload an image
+                    to detect faces.
+                </p>
+
+            </div>
+
+
+            <div class="system-status">
+
+                <span class="pulse-dot"></span>
+
+                System Online
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =========================
+             CAMERA CARD
+        ========================== -->
+
+        <section class="dashboard-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h2>
+                        Live Camera
+                    </h2>
+
+                    <p>
+                        Real-time camera stream
+                    </p>
+
+                </div>
+
+
+                <div
+                    id="cameraStatus"
+                    class="status-badge"
+                >
+
+                    <span class="dot"></span>
+
+                    Camera Stopped
+
+                </div>
+
+            </div>
+
+
+            <div class="camera-container">
+
+                <img
+                    id="cameraStream"
+                    class="camera-stream"
+                    alt="Live camera stream"
+                    style="display: none;"
+                >
+
+
+                <div
+                    id="cameraPlaceholder"
+                    class="camera-placeholder"
+                >
+
+                    <div class="camera-placeholder-icon">
+                        📷
+                    </div>
+
+                    <h3>
+                        Camera is not running
+                    </h3>
+
+                    <p>
+                        Click "Start Camera" to begin
+                        the live video stream.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="camera-controls">
+
+                <button
+                    type="button"
+                    id="startCameraButton"
+                    class="btn btn-primary"
+                    onclick="startCamera()"
+                >
+                    ▶ Start Camera
+                </button>
+
+
+                <button
+                    type="button"
+                    id="stopCameraButton"
+                    class="btn btn-secondary"
+                    onclick="stopCamera()"
+                    disabled
+                >
+                    ■ Stop Camera
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =========================
+             IMAGE DETECTION
+        ========================== -->
+
+        <section class="dashboard-card">
+
+            <div class="card-header">
+
+                <div>
+
+                    <h2>
+                        Image Face Detection
+                    </h2>
+
+                    <p>
+                        Upload an image and detect
+                        faces using OpenCV.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="upload-area">
+
+                <label
+                    for="imageInput"
+                    class="upload-box"
+                    id="uploadBox"
+                >
+
+                    <div class="upload-icon">
+                        ☁
+                    </div>
+
+                    <h3>
+                        Choose an image
+                    </h3>
+
+                    <p>
+                        JPG, JPEG, PNG or WEBP
+                    </p>
+
+                    <span class="upload-button">
+                        Browse File
+                    </span>
+
+                </label>
+
+
+                <input
+                    type="file"
+                    id="imageInput"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                    hidden
+                >
+
+
+                <div
+                    id="selectedFile"
+                    class="selected-file"
+                    style="display: none;"
+                >
+
+                    <span class="file-icon">
+                        🖼️
+                    </span>
+
+
+                    <div class="file-details">
+
+                        <strong id="fileName"></strong>
+
+                        <span id="fileSize"></span>
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="remove-file"
+                        onclick="removeSelectedFile()"
+                        aria-label="Remove selected file"
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =========================
+                 DETECTION OPTIONS
+            ========================== -->
+
+            <div class="detection-options">
+
+                <label class="checkbox-container">
+
+                    <input
+                        type="checkbox"
+                        id="saveResult"
+                        checked
+                    >
+
+                    <span class="checkmark"></span>
+
+                    <span>
+                        Save detected image
+                    </span>
+
+                </label>
+
+
+                <button
+                    type="button"
+                    id="detectButton"
+                    class="btn btn-primary"
+                    onclick="detectFaces()"
+                    disabled
+                >
+
+                    <span id="detectButtonText">
+                        🔍 Detect Faces
+                    </span>
+
+                    <span
+                        id="detectSpinner"
+                        class="spinner"
+                        style="display: none;"
+                    ></span>
+
+                </button>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =========================
+             DETECTION RESULT
+        ========================== -->
+
+        <section
+            id="resultSection"
+            class="dashboard-card result-card"
+            style="display: none;"
+        >
+
+            <div class="card-header">
+
+                <div>
+
+                    <h2>
+                        Detection Result
+                    </h2>
+
+                    <p>
+                        Face detection analysis
+                    </p>
+
+                </div>
+
+
+                <div
+                    id="resultStatus"
+                    class="status-badge success"
+                >
+                    Completed
+                </div>
+
+            </div>
+
+
+            <div class="result-content">
+
+
+                <!-- =========================
+                     RESULT IMAGE
+                ========================== -->
+
+                <div class="result-image-container">
+
+                    <img
+                        id="resultImage"
+                        class="result-image"
+                        alt="Detected faces"
+                    >
+
+                </div>
+
+
+
+                <!-- =========================
+                     RESULT INFORMATION
+                ========================== -->
+
+                <div class="result-info">
+
+                    <div class="result-stat">
+
+                        <span class="stat-label">
+                            Faces Detected
+                        </span>
+
+                        <strong
+                            id="faceCount"
+                            class="stat-value"
+                        >
+                            0
+                        </strong>
+
+                    </div>
+
+
+                    <div class="result-stat">
+
+                        <span class="stat-label">
+                            User
+                        </span>
+
+                        <strong
+                            id="resultUser"
+                            class="stat-value-small"
+                        >
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="result-stat">
+
+                        <span class="stat-label">
+                            Role
+                        </span>
+
+                        <strong
+                            id="resultRole"
+                            class="stat-value-small"
+                        >
+                            -
+                        </strong>
+
+                    </div>
+
+
+                    <div class="result-stat">
+
+                        <span class="stat-label">
+                            Result File
+                        </span>
+
+                        <strong
+                            id="resultFile"
+                            class="stat-value-small"
+                        >
+                            -
+                        </strong>
+
+                    </div>
+
+
+
+                    <!-- =========================
+                         FACE COORDINATES
+                    ========================== -->
+
+                    <div class="coordinates-section">
+
+                        <h3>
+                            Detected Face Coordinates
+                        </h3>
+
+                        <div
+                            id="faceCoordinates"
+                            class="coordinates-list"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =========================
+             ERROR MESSAGE
+        ========================== -->
+
+        <div
+            id="errorMessage"
+            class="alert alert-error"
+            style="display: none;"
+        ></div>
+
+    </main>
+
+
+
+    <!-- =========================
+         FOOTER
+    ========================== -->
+
+    <footer class="footer">
+
+        <p>
+            FaceVision — FastAPI + OpenCV
+        </p>
+
+        <p>
+            Authenticated session
+        </p>
+
+    </footer>
+
+
+
+    <!-- =========================
+         JWT
+    ========================== -->
+
+    <script>
+        /*
+         * JWT is injected by FastAPI/Jinja.
+         *
+         * Do NOT console.log(TOKEN).
+         * Do NOT send it to analytics or logs.
+         *
+         * The token is intentionally present in the
+         * URL according to the current architecture.
+         */
+        const TOKEN = "{{ token }}";
+    </script>
+
+
+    <!-- =========================
+         DASHBOARD JAVASCRIPT
+    ========================== -->
+
+    <script src="/static/js/dashboard.js"></script>
+
+</body>
+
+</html>
